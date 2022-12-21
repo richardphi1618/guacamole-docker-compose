@@ -93,7 +93,7 @@ networks:
 services:
   # guacd
   guacd:
-    container_name: guacd_compose
+    container_name: guacamole_guacd
     image: guacamole/guacd
     networks:
       guacnetwork_compose:
@@ -103,11 +103,11 @@ services:
     - ./record:/record:rw
   # postgres
   postgres:
-    container_name: postgres_guacamole_compose
+    container_name: guacamole_postgres
     environment:
       PGDATA: /var/lib/postgresql/data/guacamole
       POSTGRES_DB: guacamole_db
-      POSTGRES_PASSWORD: 'ChooseYourOwnPasswordHere1234'
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
       POSTGRES_USER: guacamole_user
     image: postgres:13.4-buster
     networks:
@@ -119,7 +119,7 @@ services:
 
   # guacamole
   guacamole:
-    container_name: guacamole_compose
+    container_name: guacamole_guacamole
     depends_on:
     - guacd
     - postgres
@@ -127,7 +127,7 @@ services:
       GUACD_HOSTNAME: guacd
       POSTGRES_DATABASE: guacamole_db
       POSTGRES_HOSTNAME: postgres
-      POSTGRES_PASSWORD: 'ChooseYourOwnPasswordHere1234'
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
       POSTGRES_USER: guacamole_user
     image: guacamole/guacamole
     links:
@@ -135,31 +135,31 @@ services:
     networks:
       guacnetwork_compose:
     ports:
-## enable next line if not using nginx
-##    - 8080:8080/tcp # Guacamole is on :8080/guacamole, not /.
-## enable next line when using nginx
-    - 8080/tcp
-    restart: always
+    # enable next line if not using nginx
+    - 8085:8080/tcp # Guacamole is on :8080/guacamole, not /.
+# ## enable next line when using nginx
+#     - 8080/tcp
+#     restart: always
 
-########### optional ##############
-  # nginx
-  nginx:
-   container_name: nginx_guacamole_compose
-   restart: always
-   image: nginx
-   volumes:
-   - ./nginx/ssl/self.cert:/etc/nginx/ssl/self.cert:ro
-   - ./nginx/ssl/self-ssl.key:/etc/nginx/ssl/self-ssl.key:ro
-   - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-   - ./nginx/mysite.template:/etc/nginx/conf.d/default.conf:ro
-   ports:
-   - 8443:443
-   links:
-   - guacamole
-   networks:
-     guacnetwork_compose:
-   # run nginx
-   command: /bin/bash -c "nginx -g 'daemon off;'"
-# nginx-debug-mode
-#   command: /bin/bash -c "nginx-debug -g 'daemon off;'"
-####################################################################################
+# ########### optional ##############
+#   # nginx
+#   nginx:
+#    container_name: nginx_guacamole_compose
+#    restart: always
+#    image: nginx
+#    volumes:
+#    - ./nginx/ssl/self.cert:/etc/nginx/ssl/self.cert:ro
+#    - ./nginx/ssl/self-ssl.key:/etc/nginx/ssl/self-ssl.key:ro
+#    - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+#    - ./nginx/mysite.template:/etc/nginx/conf.d/default.conf:ro
+#    ports:
+#    - 8443:443
+#    links:
+#    - guacamole
+#    networks:
+#      guacnetwork_compose:
+#    # run nginx
+#    command: /bin/bash -c "nginx -g 'daemon off;'"
+# # nginx-debug-mode
+# #   command: /bin/bash -c "nginx-debug -g 'daemon off;'"
+# ####################################################################################
